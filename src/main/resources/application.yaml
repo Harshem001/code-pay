@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: CodePay
+  datasource:
+    url: jdbc:mysql://localhost:3306/codePay_api?createDatabaseIfNotExist=true
+    username: root
+    password: Ayo1974@003
+
+  jwt:
+    secret: ${JWT_SECRET}
+    accessTokenExpiration: 72000
+    refreshTokenExpiration: 604800
+
+
+paystack:
+    secretKey: ${PAYSTACK_SECRET_KEY}
+    url: ${PAYSTACK_URL}
+    verifyUrl: ${PAYSTACK_VERIFY_URL}
