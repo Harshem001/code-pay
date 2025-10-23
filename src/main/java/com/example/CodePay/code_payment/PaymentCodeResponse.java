@@ -20,5 +20,4 @@ public class PaymentCodeResponse {
     private PaymentCodeEnum status;
     private Instant createdAt;
     private Instant expireAt;
-
 }

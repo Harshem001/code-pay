@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/users/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/payments/deposit/webhook").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

@@ -91,7 +91,6 @@ public class PaymentService {
 
     public void verifyPayment(String reference) {
 
-        //authenticate my account with paystack
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(secretKey);
 

@@ -25,7 +25,9 @@ public class Wallet_to_WalletService {
     private final PasswordEncoder passwordEncoder;
 
 
-    public Wallet_to_Wallet_Sender_Response walletTransfer(Authentication authentication, Wallet_to_Wallet_Sender_Request request) {
+    public Wallet_to_Wallet_Sender_Response walletTransfer(
+            Authentication authentication,
+            Wallet_to_Wallet_Sender_Request request) {
         UserPrincipal  userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
         User sender = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
@@ -38,6 +40,7 @@ public class Wallet_to_WalletService {
             throw new RuntimeException("insufficient funds");
         }
         String receiverWalletNumber =  request.getReceiverWalletNumber();
+
         System.out.println("Receiver wallet number: " + receiverWalletNumber);
         System.out.println("Wallet exists: " + walletRepository.existsByWalletNumber(receiverWalletNumber));
 

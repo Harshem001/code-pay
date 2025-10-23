@@ -12,4 +12,7 @@ import java.math.BigDecimal;
 public class PaymentCodeRequest {
     private BigDecimal amount;
     private String pin;
+    private double target_lat;
+    private double target_lng;
+    private Long radius_meters;
 }

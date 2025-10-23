@@ -52,4 +52,13 @@ public class PaymentCode {
     @Column(name = "redeemed_at")
     private Instant redeemedAt;
 
+    @Column(name = "target_lat")
+    private double target_lat;
+
+    @Column(name = "target_lon")
+    private double target_lng;
+
+    @Column(name = "radius_meters")
+    private Long radius_meters;
+
 }

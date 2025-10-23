@@ -27,6 +27,7 @@ public class RedeemCodeService {
     private final PaymentCodeRepository paymentCodeRepository;
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
+    private final GeoUtils geoUtils;
 
     public RedeemCodeResponse redeemCode(Authentication authentication, RedeemCodeRequest request) {
 
@@ -46,8 +47,18 @@ public class RedeemCodeService {
         BigDecimal senderBalance =  paymentCode.getSender().getWallet().getBalance();
         BigDecimal amountSent = paymentCode.getAmount();
 
+        // validate geo-location
+        double distance = geoUtils.calculateDistance(
+                paymentCode.getTarget_lat(), paymentCode.getTarget_lng(),
+                request.getRedeemerLat(), request.getRedeemerLon());
+
+        if (distance > paymentCode.getRadius_meters()){
+            throw new RuntimeException("You're not within the allowed location to redeem this code");
+        }
+        //check if the code has expired and if the sender's balanace is upto the amount.
         if (paymentCode.getExpireAt().isAfter(Instant.now())
                 && senderBalance.compareTo(amountSent) > 0) {
+
             //set debit transaction
             Transaction debitTransaction = new Transaction();
             debitTransaction.setWallet(paymentCode.getSender().getWallet());
@@ -86,7 +97,10 @@ public class RedeemCodeService {
             paymentCode.setReceiverId(redeemer);
 
             paymentCodeRepository.save(paymentCode);
-        }
+        }else {
+                throw new RuntimeException("Payment Code with code " + request.getCode() + " has expired");
+            }
+
         return  RedeemCodeResponse.builder()
                 .amount(paymentCode.getAmount())
                 .senderName(paymentCode.getSender().getFullName())

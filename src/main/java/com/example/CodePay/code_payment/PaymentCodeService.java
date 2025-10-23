@@ -32,7 +32,7 @@ public class PaymentCodeService {
                 () -> new UsernameNotFoundException("invalid email or password"));
 
 
-        //check wallet balance
+
         if (sender.getWallet() == null) {
             throw new RuntimeException("Sender does not have a wallet assigned");
         }
@@ -74,6 +74,9 @@ public class PaymentCodeService {
                 .status(PaymentCodeEnum.PENDING)
                 .createdAt(createdAt)
                 .expireAt(expiredAt)
+                .target_lat(request.getTarget_lat())
+                .target_lng(request.getTarget_lng())
+                .radius_meters(request.getRadius_meters())
                 .build();
 
         paymentCodeRepository.save(paymentCode);
