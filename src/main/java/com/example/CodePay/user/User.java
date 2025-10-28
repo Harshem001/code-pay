@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -35,6 +37,21 @@ public class User {
 
     @Column(name = "pin")
     private String pin;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "phone_Number")
+    private String phoneNumber;
+
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "bvn")
+    private String bvn;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Wallet wallet;

@@ -1,9 +1,12 @@
 package com.example.CodePay.user;
 
+import com.example.CodePay.Security.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -31,42 +34,43 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<?> registerUser(
-            @Valid @RequestBody RegisterUserRequest request,
-            UriComponentsBuilder uriComponentsBuilder) {
+            @Valid @RequestBody RegisterUserRequest request) {
 
         var user = userService.registerUser(request);
 
-        var uri = uriComponentsBuilder.path("/users/{id}").buildAndExpand(user.getId());
-        return ResponseEntity.created(uri.toUri()).body(user);
+        return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<RegisterUserResponse> updateUser (
-            @PathVariable(name = "id") Long id, @RequestBody RegisterUserResponse registerUserResponse) {
-        var user = userRepository.findById(id).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        user.setFullName(registerUserResponse.getFullName());
-        user.setEmail(registerUserResponse.getEmail());
+    @PostMapping("/updateMyProfile")
+    public ResponseEntity<String> updateUser (
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody UpdateUserProfileDto updateUserProfileDto) {
+        var user = userRepository.findByEmail(userPrincipal.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setFullName(updateUserProfileDto.getFullName());
+        user.setAddress(updateUserProfileDto.getAddress());
+        user.setDateOfBirth(updateUserProfileDto.getDateOfBirth());
+        user.setPhoneNumber(updateUserProfileDto.getPhoneNumber());
 
         userRepository.save(user);
 
-        return ResponseEntity.ok(registerUserResponse);
+        return ResponseEntity.ok("Profile updated successfully");
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RegisterUserResponse> getUserById (@PathVariable Long id) {
-        var user = userRepository.findById(id).orElse(null);
+    @GetMapping("/myProfile")
+    public ResponseEntity<RegisterUserResponse> getUserProfile (
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        var user = userRepository.findByEmail(userPrincipal.getEmail()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
         RegisterUserResponse registerUserResponse = new RegisterUserResponse(
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
                 user.getWallet().getWalletNumber()
         );
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(registerUserResponse);
     }
 

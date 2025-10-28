@@ -26,9 +26,13 @@ public class UserService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setAddress(request.getAddress());
         user.setRoles(Roles.USER);
         user.setCreatedAt(Instant.now());
-        user.setPin(passwordEncoder.encode(request.getPin()));
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setGender(request.getGender());
+        user.setBvn(request.getBvn());
 
         User savedUser = userRepository.save(user);
 
