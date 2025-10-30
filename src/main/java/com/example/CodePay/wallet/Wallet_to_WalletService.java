@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -95,5 +96,23 @@ public class Wallet_to_WalletService {
         response.setReference(debitTransaction.getReference());
 
         return  response;
+    }
+    public List<TransactionHistoryDTO> getTransactionHistory(UserPrincipal userPrincipal) {
+        User user = userRepository.findByEmail(userPrincipal.getEmail()).
+                orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        List<Transaction> transactions = paymentRepository.findByWallet(user.getWallet());
+
+        List<TransactionHistoryDTO> transactionHistory = transactions.stream()
+                .map(transaction ->new TransactionHistoryDTO(
+                        transaction.getWallet().getUser().getFullName(),
+                        transaction.getReference(),
+                        transaction.getAmount(),
+                        transaction.getStatus(),
+                        transaction.getTransactionType(),
+                        transaction.getDate()
+                ))
+                .toList();
+        return transactionHistory;
     }
 }

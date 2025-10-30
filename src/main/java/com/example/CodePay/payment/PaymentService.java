@@ -1,5 +1,6 @@
 package com.example.CodePay.payment;
 
+import com.example.CodePay.Security.UserPrincipal;
 import com.example.CodePay.user.User;
 import com.example.CodePay.user.UserRepository;
 import com.example.CodePay.wallet.Wallet;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,12 +39,12 @@ public class PaymentService {
     @Value("${PAYSTACK_VERIFY_URL}")
     private String payStackVerifyUrl;
 
-    public DepositResponse payStackInitDeposit(DepositRequest depositRequest) {
+    public DepositResponse payStackInitDeposit(UserPrincipal userPrincipal, DepositRequest depositRequest) {
+
+        User user = userRepository.findByEmail(userPrincipal.getEmail()).
+                orElseThrow(() -> new UsernameNotFoundException("User not found"));
        String reference;
        reference = generateReference();
-        User user = userRepository.findByEmail(depositRequest.getEmail()).orElseThrow(
-                () -> new RuntimeException("User not found with email: " + depositRequest.getEmail())
-        );
 
         //save pending Transaction
         Transaction transaction = new Transaction();
@@ -60,7 +63,7 @@ public class PaymentService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> request = new HashMap<>();
-        request.put("email",  depositRequest.getEmail());
+        request.put("email", userPrincipal.getEmail());
         request.put("amount",  depositRequest.getAmount().multiply(new BigDecimal(100)));
         request.put("reference", reference);
         request.put("metaData",  Map.of("walletNumber", user.getWallet().getWalletNumber()));

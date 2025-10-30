@@ -10,6 +10,5 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Data
 public class DepositRequest {
-    private String email;
     private BigDecimal amount;
 }

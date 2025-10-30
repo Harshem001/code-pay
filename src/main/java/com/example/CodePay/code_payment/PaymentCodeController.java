@@ -18,11 +18,7 @@ public class PaymentCodeController {
     @PostMapping("/generateCode")
     @Operation(
             summary = "Code pay",
-            description = "Generate a code while transferring funds to an individual that has no account with the system",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Code Generated Successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid Input Data")
-            }
+            description = "Generate a code while transferring funds to an individual that has no account with the system"
     )
     public ResponseEntity<PaymentCodeResponse> generatePaymentCode(
             Authentication authentication,
