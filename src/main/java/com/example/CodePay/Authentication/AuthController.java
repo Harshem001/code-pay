@@ -1,6 +1,7 @@
 package com.example.CodePay.Authentication;
 
 import com.example.CodePay.Security.JwtService;
+import com.example.CodePay.code_payment.GeneralResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,11 +35,17 @@ public class AuthController {
                     @ApiResponse(responseCode = "400", description = "Could not Log user In due to incorrect credential")
             }
     )
-    public ResponseEntity<LoginResponse> login(
+    public ResponseEntity<GeneralResponseDto<LoginResponse>> login(
             @Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
 
-        return ResponseEntity.ok(response);
+        GeneralResponseDto<LoginResponse> generalResponseDto = GeneralResponseDto.<LoginResponse>builder()
+                .status("200")
+                .message("You've Successfully Logged in")
+                .data(response)
+                .build();
+
+        return ResponseEntity.ok(generalResponseDto);
     }
 
     @PostMapping("/refresh")

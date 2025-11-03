@@ -1,6 +1,7 @@
 package com.example.CodePay.payment;
 
 import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.code_payment.GeneralResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,10 +25,17 @@ public class PaymentController {
            summary = "Initialize deposit",
            description = "Initialize a deposit request from PayStack"
    )
-    public ResponseEntity<DepositResponse> initializeDeposit(
+    public ResponseEntity<GeneralResponseDto<DepositResponse>> initializeDeposit(
            @AuthenticationPrincipal UserPrincipal userPrincipal,
            @RequestBody DepositRequest depositRequest) {
-        return ResponseEntity.ok(paymentService.payStackInitDeposit(userPrincipal, depositRequest));
+       DepositResponse depositResponse = paymentService.payStackInitDeposit(userPrincipal, depositRequest);
+
+       GeneralResponseDto<DepositResponse> response = GeneralResponseDto.<DepositResponse>builder()
+               .status("200")
+               .message("Deposit Successful")
+               .data(depositResponse)
+               .build();
+       return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/deposit/webhook")

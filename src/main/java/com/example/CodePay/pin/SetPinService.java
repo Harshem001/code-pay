@@ -15,16 +15,20 @@ public class SetPinService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void setPin(UserPrincipal userPrincipal, PinRequest pinRequest) {
+    public PinResponse setPin(UserPrincipal userPrincipal, PinRequest pinRequest) {
         if (pinRequest == null || pinRequest.getPin() == null || pinRequest.getPin().isBlank()) {
-            throw new UsernameNotFoundException("Pin cannot be empty");
+            throw new IllegalArgumentException("Pin cannot be empty");
+        }
+        String pin = pinRequest.getPin();
+        if (!pin.matches("\\d{4,6}")) {
+            throw new IllegalArgumentException("PIN must be 4–6 digits");
         }
 
         User user = userRepository.findByEmail(userPrincipal.getEmail()).
                 orElseThrow(() -> new UsernameNotFoundException(userPrincipal.getEmail()));
 
-        user.setPin(passwordEncoder.encode(pinRequest.getPin()));
+        user.setPin(passwordEncoder.encode(pin));
         userRepository.save(user);
-        new PinResponse();
+        return new PinResponse("Pin set successfully");
     }
 }

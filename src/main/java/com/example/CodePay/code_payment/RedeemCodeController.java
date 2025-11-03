@@ -1,7 +1,6 @@
 package com.example.CodePay.code_payment;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +20,16 @@ public class RedeemCodeController {
     @Operation(
             summary = "Redeem Code"
     )
-    public ResponseEntity<RedeemCodeResponse> getRedeemCodeResponse(
+    public ResponseEntity<GeneralResponseDto<RedeemCodeResponse>> getRedeemCodeResponse(
             Authentication authentication,
             @RequestBody RedeemCodeRequest request) {
-        return ResponseEntity.ok(redeemCodeService.redeemCode(authentication, request));
+        RedeemCodeResponse redeemCodeResponse = redeemCodeService.redeemCode(authentication, request);
+
+        GeneralResponseDto<RedeemCodeResponse> generalResponseDto = GeneralResponseDto.<RedeemCodeResponse>builder()
+                .status("200")
+                .message("Payment Code Generated Successfully")
+                .data(redeemCodeResponse)
+                .build();
+        return ResponseEntity.ok(generalResponseDto);
     }
 }

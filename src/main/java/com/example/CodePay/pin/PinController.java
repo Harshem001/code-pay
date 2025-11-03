@@ -1,6 +1,7 @@
 package com.example.CodePay.pin;
 
 import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.code_payment.GeneralResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,12 +30,16 @@ public class PinController {
                     @ApiResponse(responseCode = "400", description = "Could not set pin")
             }
     )
-    public ResponseEntity<PinResponse> setPin(
+    public ResponseEntity<GeneralResponseDto<PinResponse>> setPin(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody PinRequest pinRequest) {
-        setPinService.setPin(userPrincipal, pinRequest);
-        PinResponse response = new PinResponse();
-        response.setMessage("You have Successfully Set your Pin");
-        return ResponseEntity.ok(response);
+        PinResponse pinResponse = setPinService.setPin(userPrincipal, pinRequest);
+
+        GeneralResponseDto<PinResponse> response = GeneralResponseDto.<PinResponse>builder()
+                .status("200")
+                .message("You've successfully set your pin")
+                .data(pinResponse)
+                .build();
+        return ResponseEntity.ok().body(response);
     }
 }
