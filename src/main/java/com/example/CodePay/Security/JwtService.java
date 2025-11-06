@@ -1,10 +1,10 @@
 package com.example.CodePay.Security;
 
 import com.example.CodePay.Config.JwtConfig;
-import com.example.CodePay.refresh_token.RefreshToken;
-import com.example.CodePay.refresh_token.RefreshTokenRepository;
-import com.example.CodePay.user.User;
-import com.example.CodePay.user.UserRepository;
+import com.example.CodePay.entity.RefreshToken;
+import com.example.CodePay.repo.RefreshTokenRepository;
+import com.example.CodePay.entity.User;
+import com.example.CodePay.repo.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -12,7 +12,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

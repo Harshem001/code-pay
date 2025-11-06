@@ -1,7 +1,7 @@
 package com.example.CodePay.Security;
 
-import com.example.CodePay.user.User;
-import com.example.CodePay.user.UserRepository;
+import com.example.CodePay.entity.User;
+import com.example.CodePay.repo.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

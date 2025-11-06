@@ -1,6 +1,6 @@
 package com.example.CodePay.Security;
 
-import com.example.CodePay.user.User;
+import com.example.CodePay.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
