@@ -1,5 +1,8 @@
 package com.example.CodePay.entity;
 
+import com.example.CodePay.enums.Status;
+import com.example.CodePay.enums.TransactionEntry;
+import com.example.CodePay.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,11 +33,15 @@ public class Transaction {
 
     @ColumnDefault("'PENDING'")
     @Column(name = "status")
-    private String status;
+    private Status status;
 
-    @ColumnDefault("'CREDITED'")
+    @Column(name = "transaction_entry")
+    @Enumerated(EnumType.STRING)
+    private TransactionEntry transactionEntry;
+
     @Column(name = "transaction_type")
-    private String transactionType;
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
 
     @Column(name = "date", nullable = false)
     private Instant date;

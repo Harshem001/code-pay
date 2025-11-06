@@ -1,6 +1,9 @@
 package com.example.CodePay.service;
 
 import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.enums.Status;
+import com.example.CodePay.enums.TransactionEntry;
+import com.example.CodePay.enums.TransactionType;
 import com.example.CodePay.utils.GeoUtils;
 import com.example.CodePay.dto.RedeemCodeRequest;
 import com.example.CodePay.dto.RedeemCodeResponse;
@@ -67,8 +70,9 @@ public class RedeemCodeService {
             Transaction debitTransaction = new Transaction();
             debitTransaction.setWallet(paymentCode.getSender().getWallet());
             debitTransaction.setReference(paymentService.generateReference());
-            debitTransaction.setStatus("Successful");
-            debitTransaction.setTransactionType("DEBITED");
+            debitTransaction.setStatus(Status.SUCCESSFUL);
+            debitTransaction.setTransactionType(TransactionType.CODE_TRANSFER);
+            debitTransaction.setTransactionEntry(TransactionEntry.DEBITED);
             debitTransaction.setDate(Instant.now());
             debitTransaction.setAmount(amountSent);
 
@@ -76,8 +80,9 @@ public class RedeemCodeService {
             Transaction creditTransaction = new Transaction();
             creditTransaction.setWallet(redeemerwallet);
             creditTransaction.setReference(debitTransaction.getReference());
-            creditTransaction.setStatus("Successful");
-            creditTransaction.setTransactionType("CREDITED");
+            creditTransaction.setStatus(Status.SUCCESSFUL);
+            creditTransaction.setTransactionType(TransactionType.CODE_TRANSFER);
+            creditTransaction.setTransactionEntry(TransactionEntry.CREDITED);
             creditTransaction.setDate(Instant.now());
             creditTransaction.setAmount(amountSent);
 
