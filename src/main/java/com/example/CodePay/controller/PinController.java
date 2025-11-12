@@ -1,6 +1,6 @@
 package com.example.CodePay.controller;
 
-import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.PinRequest;
 import com.example.CodePay.dto.PinResponse;

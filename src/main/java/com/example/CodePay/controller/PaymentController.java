@@ -1,10 +1,10 @@
 package com.example.CodePay.controller;
 
-import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.DepositRequest;
 import com.example.CodePay.dto.DepositResponse;
 import com.example.CodePay.dto.GeneralResponseDto;
-import com.example.CodePay.service.PaymentService;
+import com.example.CodePay.service.DepositService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Tag(name = "Deposit Money", description = "Deposit Money Via PayStack")
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final DepositService depositService;
 
    @PostMapping("/deposit")
    @Operation(
@@ -30,7 +30,7 @@ public class PaymentController {
     public ResponseEntity<GeneralResponseDto<DepositResponse>> initializeDeposit(
            @AuthenticationPrincipal UserPrincipal userPrincipal,
            @RequestBody DepositRequest depositRequest) {
-       DepositResponse depositResponse = paymentService.payStackInitDeposit(userPrincipal, depositRequest);
+       DepositResponse depositResponse = depositService.payStackInitDeposit(userPrincipal, depositRequest);
 
        GeneralResponseDto<DepositResponse> response = GeneralResponseDto.<DepositResponse>builder()
                .status("200")
@@ -52,7 +52,7 @@ public class PaymentController {
         //  Verify webhook signature here before trusting payload
         String reference = (String) ((Map) payload.get("data")).get("reference");
 
-        paymentService.verifyPayment(reference);
+        depositService.verifyPayment(reference);
 
         return ResponseEntity.ok("Webhook processed");
     }

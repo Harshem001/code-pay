@@ -32,6 +32,7 @@ public class Transaction {
     private BigDecimal amount;
 
     @ColumnDefault("'PENDING'")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
 

@@ -1,6 +1,6 @@
-package com.example.CodePay.Security;
+package com.example.CodePay.security;
 
-import com.example.CodePay.Config.JwtConfig;
+import com.example.CodePay.config.JwtConfig;
 import com.example.CodePay.entity.RefreshToken;
 import com.example.CodePay.repo.RefreshTokenRepository;
 import com.example.CodePay.entity.User;

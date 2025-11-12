@@ -1,4 +1,4 @@
-package com.example.CodePay.Security;
+package com.example.CodePay.security;
 
 import com.example.CodePay.entity.User;
 import lombok.AllArgsConstructor;

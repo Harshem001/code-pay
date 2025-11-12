@@ -1,11 +1,14 @@
 package com.example.CodePay.service;
 
-import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.enums.TransactionEntry;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.DepositRequest;
 import com.example.CodePay.dto.DepositResponse;
 import com.example.CodePay.dto.PaystackResponseDTO;
 import com.example.CodePay.entity.Transaction;
-import com.example.CodePay.repo.PaymentRepository;
+import com.example.CodePay.enums.Status;
+import com.example.CodePay.enums.TransactionType;
+import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.entity.User;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.entity.Wallet;
@@ -26,9 +29,9 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class PaymentService {
+public class DepositService {
 
-    private final PaymentRepository paymentRepository;
+    private final TransactionRepository transactionRepository;
     private final RestTemplateBuilder restTemplateBuilder;
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
@@ -55,11 +58,12 @@ public class PaymentService {
         transaction.setWallet(user.getWallet());
         transaction.setReference(reference);
         transaction.setAmount(depositRequest.getAmount());
-        transaction.setStatus("PENDING");
-        transaction.setTransactionType("CREDITED");
+        transaction.setStatus(Status.valueOf("PENDING"));
+        transaction.setTransactionType(TransactionType.DEPOSIT);
+        transaction.setTransactionEntry(TransactionEntry.CREDITED);
         transaction.setDate(Instant.now());
 
-        paymentRepository.save(transaction);
+        transactionRepository.save(transaction);
 
         // paystack initializer API
         HttpHeaders headers = new HttpHeaders();
@@ -108,11 +112,11 @@ public class PaymentService {
         String status = (String) responseBody.get("status");
 
         // to check the reference in my db that was created when initializing payment.
-        Transaction transaction = paymentRepository.findByReference(reference).orElseThrow(
+        Transaction transaction = transactionRepository.findByReference(reference).orElseThrow(
                 () -> new RuntimeException("No matching reference found in the DB"));
 
         if ("success".equalsIgnoreCase(status)) {
-            transaction.setStatus("SUCCESSFUL");
+            transaction.setStatus(Status.SUCCESSFUL);
 
             Wallet wallet = walletRepository.findById(transaction.getWallet().getId()).orElseThrow(
                     () -> new RuntimeException("No matching wallet found in the DB"));
@@ -123,8 +127,8 @@ public class PaymentService {
             );
             walletRepository.save(wallet);
         }else  {
-            transaction.setStatus("FAILED");
+            transaction.setStatus(Status.FAILED);
         }
-        paymentRepository.save(transaction);
+        transactionRepository.save(transaction);
     }
 }

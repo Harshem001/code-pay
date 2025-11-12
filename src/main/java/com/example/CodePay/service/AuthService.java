@@ -2,7 +2,7 @@ package com.example.CodePay.service;
 
 import com.example.CodePay.dto.LoginRequest;
 import com.example.CodePay.dto.LoginResponse;
-import com.example.CodePay.Security.JwtService;
+import com.example.CodePay.security.JwtService;
 import com.example.CodePay.repo.RefreshTokenRepository;
 import com.example.CodePay.entity.User;
 import com.example.CodePay.repo.UserRepository;

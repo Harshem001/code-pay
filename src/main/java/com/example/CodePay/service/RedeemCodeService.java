@@ -1,6 +1,6 @@
 package com.example.CodePay.service;
 
-import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.enums.Status;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
@@ -9,7 +9,7 @@ import com.example.CodePay.dto.RedeemCodeRequest;
 import com.example.CodePay.dto.RedeemCodeResponse;
 import com.example.CodePay.entity.PaymentCode;
 import com.example.CodePay.enums.PaymentCodeEnum;
-import com.example.CodePay.repo.PaymentRepository;
+import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.entity.Transaction;
 import com.example.CodePay.repo.PaymentCodeRepository;
 import com.example.CodePay.entity.User;
@@ -32,8 +32,8 @@ public class RedeemCodeService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final PaymentCodeRepository paymentCodeRepository;
-    private final PaymentService paymentService;
-    private final PaymentRepository paymentRepository;
+    private final DepositService depositService;
+    private final TransactionRepository transactionRepository;
     private final GeoUtils geoUtils;
 
     public RedeemCodeResponse redeemCode(Authentication authentication, RedeemCodeRequest request) {
@@ -69,7 +69,7 @@ public class RedeemCodeService {
             //set debit transaction
             Transaction debitTransaction = new Transaction();
             debitTransaction.setWallet(paymentCode.getSender().getWallet());
-            debitTransaction.setReference(paymentService.generateReference());
+            debitTransaction.setReference(depositService.generateReference());
             debitTransaction.setStatus(Status.SUCCESSFUL);
             debitTransaction.setTransactionType(TransactionType.CODE_TRANSFER);
             debitTransaction.setTransactionEntry(TransactionEntry.DEBITED);
@@ -87,8 +87,8 @@ public class RedeemCodeService {
             creditTransaction.setAmount(amountSent);
 
             //save transaction
-            paymentRepository.save(debitTransaction);
-            paymentRepository.save(creditTransaction);
+            transactionRepository.save(debitTransaction);
+            transactionRepository.save(creditTransaction);
 
             //get sender wallet
             Wallet senderwallet = paymentCode.getSender().getWallet();

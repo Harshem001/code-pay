@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class RegisterUserResponse {
-    private  Long id;
-    private String fullName;
+public class DeleteUserRequest {
     private String email;
-    private String walletNumber;
 }

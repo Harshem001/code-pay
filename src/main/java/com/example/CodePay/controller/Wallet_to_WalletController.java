@@ -1,10 +1,10 @@
 package com.example.CodePay.controller;
 
-import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.TransactionHistoryDTO;
 import com.example.CodePay.dto.Wallet_to_Wallet_Sender_Request;
 import com.example.CodePay.dto.Wallet_to_Wallet_Sender_Response;
-import com.example.CodePay.repo.PaymentRepository;
+import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.entity.User;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.service.Wallet_to_WalletService;
@@ -29,7 +29,7 @@ public class Wallet_to_WalletController {
 
     private final Wallet_to_WalletService wallet_to_WalletService;
     private final UserRepository userRepository;
-    private final PaymentRepository paymentRepository;
+    private final TransactionRepository transactionRepository;
 
     @PostMapping
     @Operation(

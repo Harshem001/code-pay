@@ -1,11 +1,14 @@
 package com.example.CodePay.service;
 
-import com.example.CodePay.Security.UserPrincipal;
+import com.example.CodePay.enums.TransactionEntry;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.TransactionHistoryDTO;
 import com.example.CodePay.dto.Wallet_to_Wallet_Sender_Request;
 import com.example.CodePay.dto.Wallet_to_Wallet_Sender_Response;
 import com.example.CodePay.entity.Wallet;
-import com.example.CodePay.repo.PaymentRepository;
+import com.example.CodePay.enums.Status;
+import com.example.CodePay.enums.TransactionType;
+import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.entity.Transaction;
 import com.example.CodePay.entity.User;
 import com.example.CodePay.repo.UserRepository;
@@ -25,8 +28,8 @@ import java.util.List;
 public class Wallet_to_WalletService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
-    private final PaymentService paymentService;
-    private final PaymentRepository paymentRepository;
+    private final DepositService depositService;
+    private final TransactionRepository transactionRepository;
     private final PasswordEncoder passwordEncoder;
 
 
@@ -65,10 +68,11 @@ public class Wallet_to_WalletService {
 
         Transaction debitTransaction = new Transaction();
         debitTransaction.setWallet(sender.getWallet());
-        debitTransaction.setReference(paymentService.generateReference());
+        debitTransaction.setReference(depositService.generateReference());
         debitTransaction.setAmount(amount);
-        debitTransaction.setStatus("Successful");
-        debitTransaction.setTransactionType("Debited");
+        debitTransaction.setStatus(Status.SUCCESSFUL);
+        debitTransaction.setTransactionType(TransactionType.TRANSFER);
+        debitTransaction.setTransactionEntry(TransactionEntry.DEBITED);
         debitTransaction.setDate(Instant.now());
 
         Wallet receiverwWallet = walletRepository.findByWalletNumber(receiverWalletNumber).orElseThrow(
@@ -79,12 +83,13 @@ public class Wallet_to_WalletService {
         creditTransaction.setWallet(receiverwWallet);
         creditTransaction.setReference(debitTransaction.getReference());
         creditTransaction.setAmount(amount);
-        creditTransaction.setStatus("Successful");
-        creditTransaction.setTransactionType("Credited");
+        creditTransaction.setStatus(Status.SUCCESSFUL);
+        creditTransaction.setTransactionType(TransactionType.TRANSFER);
+        creditTransaction.setTransactionEntry(TransactionEntry.CREDITED);
         creditTransaction.setDate(Instant.now());
 
-        paymentRepository.save(debitTransaction);
-        paymentRepository.save(creditTransaction);
+        transactionRepository.save(debitTransaction);
+        transactionRepository.save(creditTransaction);
 
         // removing and adding money in the wallet
         sender.getWallet().setBalance(sender.getWallet().getBalance().subtract(amount));
@@ -105,7 +110,7 @@ public class Wallet_to_WalletService {
         User user = userRepository.findByEmail(userPrincipal.getEmail()).
                 orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<Transaction> transactions = paymentRepository.findByWallet(user.getWallet());
+        List<Transaction> transactions = transactionRepository.findByWallet(user.getWallet());
 
         List<TransactionHistoryDTO> transactionHistory = transactions.stream()
                 .map(transaction ->new TransactionHistoryDTO(

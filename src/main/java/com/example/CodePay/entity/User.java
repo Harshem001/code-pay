@@ -52,7 +52,7 @@ public class User {
     @Column(name = "bvn")
     private String bvn;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Wallet wallet;
 
 }

@@ -1,25 +1,20 @@
-package com.example.CodePay.Config;
+package com.example.CodePay.config;
 
-import io.jsonwebtoken.security.Keys;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import javax.crypto.SecretKey;
-import java.util.Base64;
 
 @Configuration
 @Data
 public class JwtConfig {
 
-    @Value("${spring.jwt.secret}")
+    @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${spring.jwt.accessTokenExpiration}")
+    @Value("${jwt.accessTokenExpiration}")
     private Long accessTokenExpirationTime;
 
-    @Value("${spring.jwt.refreshTokenExpiration}")
+    @Value("${jwt.refreshTokenExpiration}")
     private Long refreshTokenExpirationTime;
 
 }
