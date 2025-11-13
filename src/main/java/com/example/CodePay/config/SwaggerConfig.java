@@ -30,7 +30,7 @@ public class SwaggerConfig {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")))
-                .servers(List.of(new Server().url(" https://commotional-chasmogamic-brittani.ngrok-free.dev")));
+                .servers(List.of(new Server().url("https://commotional-chasmogamic-brittani.ngrok-free.dev")));
 
     }
 }
