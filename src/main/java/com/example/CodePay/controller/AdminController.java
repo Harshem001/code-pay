@@ -2,22 +2,18 @@ package com.example.CodePay.controller;
 
 import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.RegisterUserResponse;
-import com.example.CodePay.dto.TransactionDto;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.service.AdminService;
 import com.example.CodePay.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @RestController
@@ -66,8 +62,11 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/allTransactions")
-    public ResponseEntity<GeneralResponseDto<List<TransactionDto>>> getListOfTransactions() {
-        GeneralResponseDto<List<TransactionDto>> response = adminService.getListOfTransactions();
+    public ResponseEntity<GeneralResponseDto<Map<String, Object>>> getListOfTransactions(
+            @RequestParam (defaultValue = "0" ) int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        GeneralResponseDto<Map<String, Object>> response = adminService.getListOfTransactions(page, size);
         return ResponseEntity.ok(response);
     }
 }
