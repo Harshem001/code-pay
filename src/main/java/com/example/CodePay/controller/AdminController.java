@@ -38,6 +38,12 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/userById")
+    public ResponseEntity<GeneralResponseDto<RegisterUserResponse>> getUserId (Long userId) {
+        GeneralResponseDto<RegisterUserResponse> response = adminService.getUserById(userId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/users/count")
     public ResponseEntity<GeneralResponseDto<Long>> getTotalUsers() {
         GeneralResponseDto<Long> response = adminService.getTotalUsers();
