@@ -4,10 +4,12 @@ import com.example.CodePay.entity.Transaction;
 import com.example.CodePay.entity.Wallet;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -39,5 +41,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                       @Param("startDate") Instant startDate,
                                       @Param("stopDate") Instant stopDate);
 
-    List<Transaction> findAll();
+    Page<Transaction> findAll(Pageable pageable);
 }

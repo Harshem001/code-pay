@@ -3,14 +3,16 @@ package com.example.CodePay.service;
 import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.RegisterUserResponse;
 import com.example.CodePay.dto.TransactionDto;
+import com.example.CodePay.entity.Transaction;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
 import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.repo.WalletRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.data.repository.query.Param;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -18,7 +20,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 @AllArgsConstructor
 @Service
 public class AdminService {
@@ -108,9 +113,12 @@ public class AdminService {
         return response;
     }
 
-    public GeneralResponseDto<List<TransactionDto>> getListOfTransactions() {
+    public GeneralResponseDto<Map<String, Object>> getListOfTransactions(int page, int size) {
 
-        List<TransactionDto> transactionList = transactionRepository.findAll()
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Transaction> transactionPage = transactionRepository.findAll(pageable);
+
+        List<TransactionDto> transactionList = transactionPage.getContent()
                 .stream()
                 .map(transaction -> new TransactionDto(
                         transaction.getId(),
@@ -122,12 +130,17 @@ public class AdminService {
                 ))
                 .toList();
 
-        GeneralResponseDto<List<TransactionDto>> respose = GeneralResponseDto.<List<TransactionDto>>builder()
-                .status("200")
-                .message("Here Are The Transaction List For CodePay")
-                .data(transactionList)
-                .build();
-        return respose;
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("transactions", transactionList);
+        responseData.put("totalItems", transactionPage.getTotalElements());
+        responseData.put("currentPage", transactionPage.getNumber());
+        responseData.put("totalPages", transactionPage.getTotalPages());
+
+       return GeneralResponseDto.<Map<String, Object>>builder()
+               .status("200")
+               .message("Transaction List Gotten Successfully")
+               .data(responseData)
+               .build();
     }
 
 }
