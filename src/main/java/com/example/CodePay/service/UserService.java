@@ -113,7 +113,10 @@ public class UserService {
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
-                user.getWallet().getWalletNumber()
+                user.getWallet().getWalletNumber(),
+                user.getWallet().getBalance(),
+                user.getPhoneNumber(),
+                user.getWallet().getTransactions().getLast().getStatus()
         );
         GeneralResponseDto<RegisterUserResponse> generalResponseDto = GeneralResponseDto.<RegisterUserResponse>builder()
                 .status("200")

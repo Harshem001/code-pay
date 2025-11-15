@@ -4,6 +4,7 @@ import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.RegisterUserResponse;
 import com.example.CodePay.dto.TransactionDto;
 import com.example.CodePay.entity.Transaction;
+import com.example.CodePay.entity.User;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
 import com.example.CodePay.repo.TransactionRepository;
@@ -13,6 +14,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -40,7 +42,10 @@ public class AdminService {
                         user.getId(),
                         user.getFullName(),
                         user.getEmail(),
-                        user.getWallet().getWalletNumber()
+                        user.getWallet().getWalletNumber(),
+                        user.getWallet().getBalance(),
+                        user.getPhoneNumber(),
+                        user.getWallet().getTransactions().getLast().getStatus()
                 ))
                 .toList();
 
@@ -60,6 +65,28 @@ public class AdminService {
                .data(userCount)
                .build();
        return totalNumberOfUser;
+    }
+
+    public GeneralResponseDto<RegisterUserResponse> getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new UsernameNotFoundException("User with id " + id + " not found"));
+
+        RegisterUserResponse response = RegisterUserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .fullName(user.getFullName())
+                .walletNumber(user.getWallet().getWalletNumber())
+                .balance(user.getWallet().getBalance())
+                .status(user.getWallet().getTransactions().getLast().getStatus())
+                .build();
+
+        GeneralResponseDto<RegisterUserResponse> userProfile = GeneralResponseDto.<RegisterUserResponse>builder()
+                .status("200")
+                .message("User profile")
+                .data(response)
+                .build();
+        return userProfile;
     }
 
     public GeneralResponseDto<BigDecimal> getTotalSystemBalance() {
