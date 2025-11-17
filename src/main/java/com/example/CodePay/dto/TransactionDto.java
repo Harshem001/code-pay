@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 public class TransactionDto {
+    private String senderName;
     private Long transactionId;
     private BigDecimal amount;
     private TransactionType transactionType;
