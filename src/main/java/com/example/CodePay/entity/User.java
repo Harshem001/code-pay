@@ -1,6 +1,7 @@
 package com.example.CodePay.entity;
 
 import com.example.CodePay.enums.Roles;
+import com.example.CodePay.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +52,10 @@ public class User {
 
     @Column(name = "bvn")
     private String bvn;
+
+    @Column(name = "user_status")
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Wallet wallet;
