@@ -1,5 +1,6 @@
 package com.example.CodePay.controller;
 
+import com.example.CodePay.dto.AccountDetailsDto;
 import com.example.CodePay.dto.DashBoardStatsDto;
 import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.RegisterUserResponse;
@@ -54,6 +55,13 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size
     ) {
         GeneralResponseDto<Map<String, Object>> response = adminService.getListOfTransactions(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/accountDetails/{Id}")
+    public ResponseEntity<GeneralResponseDto<AccountDetailsDto>> accountDetails(
+            @PathVariable Long Id) {
+        GeneralResponseDto<AccountDetailsDto> response = adminService.getAccountDetails(Id);
         return ResponseEntity.ok(response);
     }
 }
