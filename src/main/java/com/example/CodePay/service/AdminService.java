@@ -1,5 +1,6 @@
 package com.example.CodePay.service;
 
+import com.example.CodePay.dto.DashBoardStatsDto;
 import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.RegisterUserResponse;
 import com.example.CodePay.dto.TransactionDto;
@@ -57,16 +58,6 @@ public class AdminService {
         return response;
     }
 
-    public GeneralResponseDto<Long> getTotalUsers() {
-        Long userCount = userRepository.count();
-       GeneralResponseDto<Long> totalNumberOfUser = GeneralResponseDto.<Long>builder()
-               .status("200")
-               .message("Here is the number of users on CodePay")
-               .data(userCount)
-               .build();
-       return totalNumberOfUser;
-    }
-
     public GeneralResponseDto<RegisterUserResponse> getUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UsernameNotFoundException("User with id " + id + " not found"));
@@ -87,57 +78,6 @@ public class AdminService {
                 .data(response)
                 .build();
         return userProfile;
-    }
-
-    public GeneralResponseDto<BigDecimal> getTotalSystemBalance() {
-        BigDecimal totalAmount = walletRepository.getTotalAmount();
-        GeneralResponseDto<BigDecimal> response = GeneralResponseDto.<BigDecimal>builder()
-                .status("200")
-                .message("Here's the total Amount In CodePay")
-                .data(totalAmount)
-                .build();
-        return response;
-    }
-
-    public GeneralResponseDto<BigDecimal> getMonthlyExpenses() {
-        ZoneId zone =  ZoneId.systemDefault();
-
-        LocalDateTime startOfMonth = LocalDateTime.now(zone).withDayOfMonth(1);
-        LocalDateTime endOfMonth =  LocalDateTime.now();
-
-        Instant beginningOfMonth = startOfMonth.atZone(zone).toInstant();
-        Instant endingOfMonth = endOfMonth.atZone(zone).toInstant();
-
-        List<String> types = List.of("TRANSFER", "WITHDRAWAL", "CODE_TRANSFER");
-        TransactionEntry entry = TransactionEntry.DEBITED;
-
-        return GeneralResponseDto.<BigDecimal>builder()
-                .status("200")
-                .message("This is the Monthly Expenses for CodePay")
-                .data(transactionRepository.calculateMonthlyExpenses(types, entry, beginningOfMonth, endingOfMonth))
-                .build();
-    }
-
-    public GeneralResponseDto<BigDecimal> getMonthlyIncome() {
-        ZoneId zone =  ZoneId.systemDefault();
-
-        LocalDateTime startOfMonth = LocalDateTime.now(zone).withDayOfMonth(1);
-        LocalDateTime endOfMonth =  LocalDateTime.now();
-
-        Instant beginningOfMonth = startOfMonth.atZone(zone).toInstant();
-        Instant endingOfMonth = endOfMonth.atZone(zone).toInstant();
-
-
-        TransactionType type = TransactionType.DEPOSIT;
-        TransactionEntry entry = TransactionEntry.CREDITED;
-
-        GeneralResponseDto<BigDecimal> response = GeneralResponseDto.<BigDecimal>builder()
-                .status("200")
-                .message("This is the Monthly Income Of CodePay")
-                .data(transactionRepository.calculateMonthlyIncome(type, entry, beginningOfMonth, endingOfMonth))
-                .build();
-
-        return response;
     }
 
     public GeneralResponseDto<Map<String, Object>> getListOfTransactions(int page, int size) {
@@ -168,6 +108,90 @@ public class AdminService {
                .message("Transaction List Gotten Successfully")
                .data(responseData)
                .build();
+    }
+
+    private GeneralResponseDto<Long> getTotalUsers() {
+        Long userCount = userRepository.count();
+        GeneralResponseDto<Long> totalNumberOfUser = GeneralResponseDto.<Long>builder()
+                .status("200")
+                .message("Here is the number of users on CodePay")
+                .data(userCount)
+                .build();
+        return totalNumberOfUser;
+    }
+
+    private GeneralResponseDto<BigDecimal> getMonthlyIncome() {
+        ZoneId zone =  ZoneId.systemDefault();
+
+        LocalDateTime startOfMonth = LocalDateTime.now(zone).withDayOfMonth(1);
+        LocalDateTime endOfMonth =  LocalDateTime.now();
+
+        Instant beginningOfMonth = startOfMonth.atZone(zone).toInstant();
+        Instant endingOfMonth = endOfMonth.atZone(zone).toInstant();
+
+
+        TransactionType type = TransactionType.DEPOSIT;
+        TransactionEntry entry = TransactionEntry.CREDITED;
+
+        GeneralResponseDto<BigDecimal> getMonthlyIncomeResponse = GeneralResponseDto.<BigDecimal>builder()
+                .status("200")
+                .message("This is the Monthly Income Of CodePay")
+                .data(transactionRepository.calculateMonthlyIncome(type, entry, beginningOfMonth, endingOfMonth))
+                .build();
+
+        return getMonthlyIncomeResponse;
+    }
+
+    private GeneralResponseDto<BigDecimal> getMonthlyExpenses() {
+        ZoneId zone =  ZoneId.systemDefault();
+
+        LocalDateTime startOfMonth = LocalDateTime.now(zone).withDayOfMonth(1);
+        LocalDateTime endOfMonth =  LocalDateTime.now();
+
+        Instant beginningOfMonth = startOfMonth.atZone(zone).toInstant();
+        Instant endingOfMonth = endOfMonth.atZone(zone).toInstant();
+
+        List<String> types = List.of("TRANSFER", "WITHDRAWAL", "CODE_TRANSFER");
+        TransactionEntry entry = TransactionEntry.DEBITED;
+
+        GeneralResponseDto<BigDecimal> getMonthlyExpensesResponse = GeneralResponseDto.<BigDecimal>builder()
+                .status("200")
+                .message("This is the Monthly Expenses for CodePay")
+                .data(transactionRepository.calculateMonthlyExpenses(types, entry, beginningOfMonth, endingOfMonth))
+                .build();
+        return getMonthlyExpensesResponse;
+    }
+
+    private GeneralResponseDto<BigDecimal> getTotalSystemBalance() {
+        BigDecimal totalAmount = walletRepository.getTotalAmount();
+        GeneralResponseDto<BigDecimal> getTotalSystemBalanceResponse = GeneralResponseDto.<BigDecimal>builder()
+                .status("200")
+                .message("Here's the total Amount In CodePay")
+                .data(totalAmount)
+                .build();
+        return getTotalSystemBalanceResponse;
+    }
+
+    public GeneralResponseDto<DashBoardStatsDto>  getDashBoardStats() {
+        GeneralResponseDto<BigDecimal> monthlyIncome = getMonthlyIncome();
+        GeneralResponseDto<BigDecimal> totalSystemBalance = getTotalSystemBalance();
+        GeneralResponseDto<Long> totalUsers = getTotalUsers();
+        GeneralResponseDto<BigDecimal> monthlyExpenses = getMonthlyExpenses();
+
+        DashBoardStatsDto stats = DashBoardStatsDto.builder()
+                .monthlyIncome(monthlyIncome.getData())
+                .monthlyExpenses(monthlyExpenses.getData())
+                .totalUser(totalUsers.getData())
+                .totalSystemBalance(totalSystemBalance.getData())
+                .build();
+
+        GeneralResponseDto<DashBoardStatsDto> response = GeneralResponseDto.<DashBoardStatsDto>builder()
+                .status("200")
+                .message("Dashboard Successfull")
+                .data(stats)
+                .build();
+
+        return response;
     }
 
 }

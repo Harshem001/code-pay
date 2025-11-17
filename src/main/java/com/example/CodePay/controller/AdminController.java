@@ -1,5 +1,6 @@
 package com.example.CodePay.controller;
 
+import com.example.CodePay.dto.DashBoardStatsDto;
 import com.example.CodePay.dto.GeneralResponseDto;
 import com.example.CodePay.dto.RegisterUserResponse;
 import com.example.CodePay.repo.UserRepository;
@@ -22,8 +23,6 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class AdminController {
 
-    private final UserRepository userRepository;
-    private final UserService userService;
     private final AdminService adminService;
 
     @GetMapping("/users")
@@ -37,6 +36,11 @@ public class AdminController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/dashBoard")
+    public ResponseEntity<GeneralResponseDto<DashBoardStatsDto>> getDashBoardStats() {
+        GeneralResponseDto<DashBoardStatsDto> response = adminService.getDashBoardStats();
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/userById")
     public ResponseEntity<GeneralResponseDto<RegisterUserResponse>> getUserId (Long userId) {
@@ -44,29 +48,6 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/users/count")
-    public ResponseEntity<GeneralResponseDto<Long>> getTotalUsers() {
-        GeneralResponseDto<Long> response = adminService.getTotalUsers();
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/codepay/totalAmount")
-    public ResponseEntity<GeneralResponseDto<BigDecimal>> getTotalSystemBalance() {
-        GeneralResponseDto<BigDecimal> response = adminService.getTotalSystemBalance();
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/codepay/monthlyExpenses")
-    public ResponseEntity<GeneralResponseDto<BigDecimal>> getMonthlyExpenses(){
-        GeneralResponseDto<BigDecimal> response = adminService.getMonthlyExpenses();
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/codepay/monthlyIncome")
-    public ResponseEntity<GeneralResponseDto<BigDecimal>> getMonthlyIncome(){
-        GeneralResponseDto<BigDecimal> response = adminService.getMonthlyIncome();
-        return ResponseEntity.ok(response);
-    }
     @GetMapping("/allTransactions")
     public ResponseEntity<GeneralResponseDto<Map<String, Object>>> getListOfTransactions(
             @RequestParam (defaultValue = "0" ) int page,
