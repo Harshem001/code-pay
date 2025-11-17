@@ -46,7 +46,7 @@ public class AdminService {
                         user.getWallet().getWalletNumber(),
                         user.getWallet().getBalance(),
                         user.getPhoneNumber(),
-                        user.getWallet().getTransactions().getLast().getStatus()
+                        user.getUserStatus()
                 ))
                 .toList();
 
@@ -69,7 +69,7 @@ public class AdminService {
                 .fullName(user.getFullName())
                 .walletNumber(user.getWallet().getWalletNumber())
                 .balance(user.getWallet().getBalance())
-                .status(user.getWallet().getTransactions().getLast().getStatus())
+                .userStatus(user.getUserStatus())
                 .build();
 
         GeneralResponseDto<RegisterUserResponse> userProfile = GeneralResponseDto.<RegisterUserResponse>builder()

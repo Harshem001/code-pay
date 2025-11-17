@@ -1,6 +1,7 @@
 package com.example.CodePay.dto;
 
 import com.example.CodePay.enums.Status;
+import com.example.CodePay.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,5 +20,5 @@ public class RegisterUserResponse {
     private String walletNumber;
     private BigDecimal balance;
     private String phoneNumber;
-    private Status status;
+    private UserStatus userStatus;
 }

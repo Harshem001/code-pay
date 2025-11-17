@@ -1,5 +1,6 @@
 package com.example.CodePay.service;
 
+import com.example.CodePay.enums.UserStatus;
 import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.PinRequest;
 import com.example.CodePay.dto.PinResponse;
@@ -30,6 +31,7 @@ public class SetPinService {
                 orElseThrow(() -> new UsernameNotFoundException(userPrincipal.getEmail()));
 
         user.setPin(passwordEncoder.encode(pin));
+        user.setUserStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         return new PinResponse("Pin set successfully");
     }

@@ -3,6 +3,7 @@ package com.example.CodePay.service;
 import com.example.CodePay.dto.*;
 import com.example.CodePay.entity.User;
 import com.example.CodePay.enums.Roles;
+import com.example.CodePay.enums.UserStatus;
 import com.example.CodePay.exception.EmailAlreadyExistException;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.entity.Wallet;
@@ -41,6 +42,7 @@ public class UserService {
         user.setPhoneNumber(request.getPhoneNumber());
         user.setGender(request.getGender());
         user.setBvn(request.getBvn());
+        user.setUserStatus(UserStatus.INACTIVE);
 
         User savedUser = userRepository.save(user);
 
@@ -116,7 +118,7 @@ public class UserService {
                 user.getWallet().getWalletNumber(),
                 user.getWallet().getBalance(),
                 user.getPhoneNumber(),
-                user.getWallet().getTransactions().getLast().getStatus()
+                user.getUserStatus()
         );
         GeneralResponseDto<RegisterUserResponse> generalResponseDto = GeneralResponseDto.<RegisterUserResponse>builder()
                 .status("200")
