@@ -79,6 +79,26 @@ public class AdminService {
                 .build();
         return userProfile;
     }
+    public GeneralResponseDto<TransactionDto> getTransactionById(Long id) {
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Transaction with id " + id + " not found"));
+
+        TransactionDto transactionDto = TransactionDto.builder()
+                .senderName(transaction.getWallet().getUser().getFullName())
+                .transactionId(transaction.getId())
+                .amount(transaction.getAmount())
+                .transactionType(transaction.getTransactionType())
+                .entry(transaction.getTransactionEntry())
+                .status(transaction.getStatus())
+                .date(transaction.getDate())
+                .build();
+        GeneralResponseDto<TransactionDto> response = GeneralResponseDto.<TransactionDto>builder()
+                .status("200")
+                .message("Successful")
+                .data(transactionDto)
+                .build();
+        return response;
+    }
 
     public GeneralResponseDto<Map<String, Object>> getListOfTransactions(int page, int size) {
 

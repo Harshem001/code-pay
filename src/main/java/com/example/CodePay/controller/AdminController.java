@@ -1,9 +1,6 @@
 package com.example.CodePay.controller;
 
-import com.example.CodePay.dto.AccountDetailsDto;
-import com.example.CodePay.dto.DashBoardStatsDto;
-import com.example.CodePay.dto.GeneralResponseDto;
-import com.example.CodePay.dto.RegisterUserResponse;
+import com.example.CodePay.dto.*;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.service.AdminService;
 import com.example.CodePay.service.UserService;
@@ -46,6 +43,12 @@ public class AdminController {
     @GetMapping("/userById")
     public ResponseEntity<GeneralResponseDto<RegisterUserResponse>> getUserId (Long userId) {
         GeneralResponseDto<RegisterUserResponse> response = adminService.getUserById(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getTransaction/{transactionId}")
+    public ResponseEntity<GeneralResponseDto<TransactionDto>> getTransactionById(@PathVariable Long transactionId) {
+        GeneralResponseDto<TransactionDto> response = adminService.getTransactionById(transactionId);
         return ResponseEntity.ok(response);
     }
 
