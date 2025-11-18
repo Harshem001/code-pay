@@ -34,12 +34,6 @@ public class AdminController {
 
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/dashBoard")
-    public ResponseEntity<GeneralResponseDto<DashBoardStatsDto>> getDashBoardStats() {
-        GeneralResponseDto<DashBoardStatsDto> response = adminService.getDashBoardStats();
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/userById")
     public ResponseEntity<GeneralResponseDto<RegisterUserResponse>> getUserId (Long userId) {
         GeneralResponseDto<RegisterUserResponse> response = adminService.getUserById(userId);
@@ -65,6 +59,23 @@ public class AdminController {
     public ResponseEntity<GeneralResponseDto<AccountDetailsDto>> accountDetails(
             @PathVariable Long Id) {
         GeneralResponseDto<AccountDetailsDto> response = adminService.getAccountDetails(Id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/changeUserStaus/{Id}")
+    public ResponseEntity<GeneralResponseDto<String>> changeUserStatus (@PathVariable Long Id) {
+        GeneralResponseDto<String> response = adminService.changeUserStatus(Id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/dashBoard")
+    public ResponseEntity<GeneralResponseDto<DashBoardStatsDto>> getDashBoardStats() {
+        GeneralResponseDto<DashBoardStatsDto> response = adminService.getDashBoardStats();
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/financeReport")
+    public ResponseEntity<GeneralResponseDto<FinancialReportDto>> getFinancialReport() {
+        GeneralResponseDto<FinancialReportDto> response = adminService.getFinancialReport();
         return ResponseEntity.ok(response);
     }
 }
