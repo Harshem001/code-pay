@@ -1,6 +1,7 @@
 package com.example.CodePay.repo;
 
 import com.example.CodePay.entity.User;
+import com.example.CodePay.enums.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.wallet ORDER BY u.fullName")
     List<User> findAllUserWithWallet();
+
+    Long countByUserStatus(UserStatus userStatus);
 }

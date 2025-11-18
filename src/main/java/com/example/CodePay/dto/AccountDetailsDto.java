@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class AccountDetailsDto {
     private String accountName;
+    private String phoneNumber;
     private String accountEmail;
     private UserStatus userStatus;
     private BigDecimal balance;

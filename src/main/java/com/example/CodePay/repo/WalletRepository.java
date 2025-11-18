@@ -16,6 +16,6 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
     Optional<Wallet> findByWalletNumber(String receiverWalletNumber);
 
-    @Query("SELECT COALESCE(SUM (w.balance), 0) FROM Wallet w ")
-    BigDecimal getTotalAmount();
+//    @Query("SELECT COALESCE(SUM (w.balance), 0) FROM Wallet w ")
+//    BigDecimal getTotalAmount();
 }

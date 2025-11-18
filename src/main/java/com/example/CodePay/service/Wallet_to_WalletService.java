@@ -115,6 +115,7 @@ public class Wallet_to_WalletService {
         List<TransactionHistoryDTO> transactionHistory = transactions.stream()
                 .map(transaction ->new TransactionHistoryDTO(
                         transaction.getWallet().getUser().getFullName(),
+                        transaction.getWallet().getUser().getPhoneNumber(),
                         transaction.getReference(),
                         transaction.getAmount(),
                         transaction.getStatus(),

@@ -3,12 +3,13 @@ package com.example.CodePay.service;
 import com.example.CodePay.dto.*;
 import com.example.CodePay.entity.Transaction;
 import com.example.CodePay.entity.User;
+import com.example.CodePay.enums.Status;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
+import com.example.CodePay.enums.UserStatus;
 import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.repo.WalletRepository;
-import com.example.CodePay.security.UserPrincipal;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -130,6 +131,56 @@ public class AdminService {
                .data(responseData)
                .build();
     }
+    public GeneralResponseDto<AccountDetailsDto> getAccountDetails(Long Id) {
+        User user = userRepository.findById(Id).orElseThrow(
+                ()-> new EntityNotFoundException("User not found"));
+
+        List<Transaction> transactions = transactionRepository.findByWallet(user.getWallet());
+
+        List<TransactionHistoryDTO> transactionHistory = transactions.stream()
+                .map(transaction ->new TransactionHistoryDTO(
+                        transaction.getWallet().getUser().getFullName(),
+                        transaction.getWallet().getUser().getPhoneNumber(),
+                        transaction.getReference(),
+                        transaction.getAmount(),
+                        transaction.getStatus(),
+                        transaction.getTransactionType(),
+                        transaction.getDate()
+                ))
+                .toList();
+        AccountDetailsDto details = AccountDetailsDto.builder()
+                .accountName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .accountEmail(user.getEmail())
+                .userStatus(user.getUserStatus())
+                .balance(user.getWallet().getBalance())
+                .transactionHistory(transactionHistory)
+                .build();
+        GeneralResponseDto<AccountDetailsDto> response = GeneralResponseDto.<AccountDetailsDto>builder()
+                .status("200")
+                .message("Successful")
+                .data(details)
+                .build();
+        return response;
+
+    }
+    public GeneralResponseDto<String> changeUserStatus(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new UsernameNotFoundException("User with id " + id + " not found"));
+        if (user.getUserStatus() == UserStatus.ACTIVE) {
+            user.setUserStatus(UserStatus.INACTIVE);
+        }else
+            user.setUserStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+        GeneralResponseDto<String> response = GeneralResponseDto.<String>builder()
+                .status("200")
+                .message("User Status Chnaged Successfully")
+                .data("New Status " + user.getUserStatus())
+                .build();
+        return response;
+    }
+
+    // ADMIN DASHBOARD
 
     private GeneralResponseDto<Long> getTotalUsers() {
         Long userCount = userRepository.count();
@@ -184,13 +235,16 @@ public class AdminService {
     }
 
     private GeneralResponseDto<BigDecimal> getTotalSystemBalance() {
-        BigDecimal totalAmount = walletRepository.getTotalAmount();
-        GeneralResponseDto<BigDecimal> getTotalSystemBalanceResponse = GeneralResponseDto.<BigDecimal>builder()
-                .status("200")
-                .message("Here's the total Amount In CodePay")
-                .data(totalAmount)
-                .build();
-        return getTotalSystemBalanceResponse;
+       BigDecimal monthlyExpenses = getMonthlyExpenses().getData();
+       BigDecimal monthlyIncome = getMonthlyIncome().getData();
+
+       BigDecimal totalBalance = monthlyIncome.subtract(monthlyExpenses);
+       GeneralResponseDto<BigDecimal> getTotalBalanceResponse = GeneralResponseDto.<BigDecimal>builder()
+               .status("200")
+               .message("Total Balance gotten Successful")
+               .data(totalBalance)
+               .build();
+       return getTotalBalanceResponse;
     }
 
     public GeneralResponseDto<DashBoardStatsDto>  getDashBoardStats() {
@@ -214,36 +268,54 @@ public class AdminService {
 
         return response;
     }
-    public GeneralResponseDto<AccountDetailsDto> getAccountDetails(Long Id) {
-       User user = userRepository.findById(Id).orElseThrow(
-               ()-> new EntityNotFoundException("User not found"));
 
-        List<Transaction> transactions = transactionRepository.findByWallet(user.getWallet());
 
-        List<TransactionHistoryDTO> transactionHistory = transactions.stream()
-                .map(transaction ->new TransactionHistoryDTO(
-                        transaction.getWallet().getUser().getFullName(),
-                        transaction.getReference(),
-                        transaction.getAmount(),
-                        transaction.getStatus(),
-                        transaction.getTransactionType(),
-                        transaction.getDate()
-                ))
-                .toList();
-        AccountDetailsDto details = AccountDetailsDto.builder()
-                .accountName(user.getFullName())
-                .accountEmail(user.getEmail())
-                .userStatus(user.getUserStatus())
-                .balance(user.getWallet().getBalance())
-                .transactionHistory(transactionHistory)
-                .build();
-        GeneralResponseDto<AccountDetailsDto> response = GeneralResponseDto.<AccountDetailsDto>builder()
-                .status("200")
-                .message("Successful")
-                .data(details)
-                .build();
-        return response;
+    //FINANCIAL REPORT
 
+    private Long getTotalTransactions() {
+        return transactionRepository.count();
     }
+    private Long getSuccessfulTransactions() {
+        return transactionRepository.countByStatus(Status.SUCCESSFUL);
+    }
+    private Long getFailedTransactions() {
+        return transactionRepository.countByStatus(Status.FAILED);
+    }
+    private Long getPendingTransactions() {
+        return transactionRepository.countByStatus(Status.PENDING);
+    }
+
+    private Long getActiveAccount(){
+        return userRepository.countByUserStatus(UserStatus.ACTIVE);
+    }
+    private Long getInactiveAccount(){
+        return userRepository.countByUserStatus(UserStatus.INACTIVE);
+    }
+    private BigDecimal getTotalIncome(){
+        return transactionRepository.calculateTotalIncome(
+                TransactionType.DEPOSIT,
+                TransactionEntry.CREDITED);
+    }
+
+    public GeneralResponseDto<FinancialReportDto> getFinancialReport (){
+        FinancialReportDto report = FinancialReportDto.builder()
+                .totalTransaction(getTotalTransactions())
+                .successfulTransaction(getSuccessfulTransactions())
+                .pendingTransaction(getPendingTransactions())
+                .failedTransaction(getFailedTransactions())
+                .totalBalance(getTotalSystemBalance().getData())
+                .totalIncome(getTotalIncome())
+                .activeAccount(getActiveAccount())
+                .inactiveAccount(getInactiveAccount())
+                .build();
+
+        return GeneralResponseDto.<FinancialReportDto>builder()
+                .status("200")
+                .message("Financial Report Gotten Successfully")
+                .data(report)
+                .build();
+    }
+
+
 
 }

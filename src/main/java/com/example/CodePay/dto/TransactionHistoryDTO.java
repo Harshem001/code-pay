@@ -11,6 +11,7 @@ import java.time.Instant;
 @Data
 public class TransactionHistoryDTO {
     private String sender;
+    private String phoneNumber;
     private String reference;
     private BigDecimal amount;
     private Status status;
