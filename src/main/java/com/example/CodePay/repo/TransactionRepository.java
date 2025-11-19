@@ -22,7 +22,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     List<Transaction> findByWallet(Wallet wallet);
 
-    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
             "WHERE t.transactionType IN :types " +
             "AND t.transactionEntry = :entry " +
             "AND t.date BETWEEN :startDate AND :stopDate")
@@ -32,7 +32,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                         @Param("stopDate") Instant stopDate);
 
 
-    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
             "WHERE t.transactionType = :type " +
             "AND t.transactionEntry = :entry " +
             "AND t.date BETWEEN :startDate AND :stopDate")
@@ -41,7 +41,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                       @Param("startDate") Instant startDate,
                                       @Param("stopDate") Instant stopDate);
 
-    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+    @Query("SELECT COALESCE(SUM(t.amount), 0)  FROM Transaction t " +
             "WHERE t.transactionType = :type " +
             "AND t.transactionEntry = :entry ")
     BigDecimal calculateTotalIncome(@Param("type")TransactionType type,
