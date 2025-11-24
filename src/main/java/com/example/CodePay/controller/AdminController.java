@@ -2,12 +2,14 @@ package com.example.CodePay.controller;
 
 import com.example.CodePay.dto.*;
 import com.example.CodePay.repo.UserRepository;
+import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.service.AdminService;
 import com.example.CodePay.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -38,6 +40,13 @@ public class AdminController {
     public ResponseEntity<GeneralResponseDto<RegisterUserResponse>> getUserId (Long userId) {
         GeneralResponseDto<RegisterUserResponse> response = adminService.getUserById(userId);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete/{email}")
+    public ResponseEntity<GeneralResponseDto<String>> deleteUser (
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable DeleteUserRequest email) {
+        return adminService.deleteUserByEmail(userPrincipal, email);
     }
 
     @GetMapping("/getTransaction/{transactionId}")

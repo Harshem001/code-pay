@@ -4,6 +4,7 @@ import com.example.CodePay.entity.User;
 import com.example.CodePay.enums.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,6 +20,10 @@ public interface UserRepository extends JpaRepository<User,Long> {
     Optional<User> findByEmail(String email);
 
     String email(String email);
+
+    boolean existsByBvn(@NotBlank(message = "bvn is required") @Size(min = 11, max = 11, message = "Must be up to 11 digits") String bvn);
+
+    boolean existsByPhoneNumber(@NotBlank(message = "Phone number is required") @Size(min = 11, max = 11, message = "Phone Number has to be 10 digits") String phoneNumber);
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.wallet ORDER BY u.fullName")
     List<User> findAllUserWithWallet();

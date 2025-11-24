@@ -7,14 +7,17 @@ import com.example.CodePay.enums.Status;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
 import com.example.CodePay.enums.UserStatus;
+import com.example.CodePay.exception.EmailNotFoundException;
 import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.repo.WalletRepository;
+import com.example.CodePay.security.UserPrincipal;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -80,6 +83,29 @@ public class AdminService {
                 .build();
         return userProfile;
     }
+
+    public ResponseEntity<GeneralResponseDto<String>> deleteUserByEmail(UserPrincipal userPrincipal, DeleteUserRequest request) {
+        var user = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
+                () -> new UsernameNotFoundException("User not found"));
+
+        if (user.getEmail().equals(request.getEmail())) {
+            throw new IllegalArgumentException("You cannot delete yourself");
+        }
+
+        User userToDelete = userRepository.findByEmail(request.getEmail()).orElseThrow(
+                () ->  new EmailNotFoundException());
+
+        userRepository.delete(userToDelete);
+
+        GeneralResponseDto<String> response = GeneralResponseDto.<String>builder()
+                .status("200")
+                .message("You've Successfully deleted the user with " + request.getEmail())
+                .data(null)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+
     public GeneralResponseDto<TransactionDto> getTransactionById(Long id) {
         Transaction transaction = transactionRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Transaction with id " + id + " not found"));
@@ -315,7 +341,4 @@ public class AdminService {
                 .data(report)
                 .build();
     }
-
-
-
 }
