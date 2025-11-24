@@ -4,14 +4,13 @@ import com.example.CodePay.dto.*;
 import com.example.CodePay.entity.User;
 import com.example.CodePay.enums.Roles;
 import com.example.CodePay.enums.UserStatus;
-import com.example.CodePay.exception.EmailAlreadyExistException;
+import com.example.CodePay.exception.*;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.entity.Wallet;
 import com.example.CodePay.repo.WalletRepository;
 import com.example.CodePay.security.UserPrincipal;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +29,12 @@ public class UserService {
     public RegisterUserResponse registerUser(RegisterUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())){
             throw new EmailAlreadyExistException();
+        }
+        if (userRepository.existsByBvn(request.getBvn())){
+            throw new BvnHasBeenUsedException();
+        }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())){
+            throw new PhoneNumberAlreadyExistException();
         }
         User user = new User();
         user.setFullName(request.getFullName());
@@ -68,6 +73,9 @@ public class UserService {
         registerUserResponse.setFullName(savedUser.getFullName());
         registerUserResponse.setEmail(savedUser.getEmail());
         registerUserResponse.setWalletNumber(savedWallet.getWalletNumber());
+        registerUserResponse.setBalance(savedWallet.getBalance());
+        registerUserResponse.setPhoneNumber(savedUser.getPhoneNumber());
+        registerUserResponse.setUserStatus(savedUser.getUserStatus());
 
         return registerUserResponse;
 
@@ -81,36 +89,10 @@ public class UserService {
         return Long.toString(walletNumber);
     }
 
-    public ResponseEntity<GeneralResponseDto<String>> deleteUserByEmail(UserPrincipal userPrincipal, DeleteUserRequest request) {
-        var user = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
-                () -> new UsernameNotFoundException("User not found"));
-
-        if (user.getEmail().equals(request.getEmail())) {
-            throw new IllegalArgumentException("You cannot delete yourself");
-        }
-
-        //check if the authorized user is an admin before deleting
-        if (!userPrincipal.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new IllegalArgumentException("You do not have permission to delete user");
-        }
-
-        User userToDelete = userRepository.findByEmail(request.getEmail()).orElseThrow(
-                () ->  new UsernameNotFoundException("User not found"));
-
-        userRepository.delete(userToDelete);
-
-        GeneralResponseDto<String> response = GeneralResponseDto.<String>builder()
-                .status("200")
-                .message("You've Successfully deleted the user with " + request.getEmail())
-                .data(null)
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
     public ResponseEntity<GeneralResponseDto<RegisterUserResponse>> getProfile(UserPrincipal userPrincipal) {
         var user = userRepository.findByEmail(userPrincipal.getEmail()).
-                orElseThrow(() -> new  UsernameNotFoundException("User not found"));
+                orElseThrow(() -> new AuthenticatedUserNotFound());
+
         RegisterUserResponse registerUserResponse = new RegisterUserResponse(
                 user.getId(),
                 user.getFullName(),
@@ -131,7 +113,7 @@ public class UserService {
 
     public ResponseEntity<GeneralResponseDto<String>> updateProfile(UserPrincipal userPrincipal, UpdateUserProfileDto updateUserProfileDto) {
         var user = userRepository.findByEmail(userPrincipal.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new AuthenticatedUserNotFound());
 
         user.setFullName(updateUserProfileDto.getFullName());
         user.setAddress(updateUserProfileDto.getAddress());

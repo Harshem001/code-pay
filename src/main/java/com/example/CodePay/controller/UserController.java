@@ -59,12 +59,4 @@ public class UserController {
         return userService.getProfile(userPrincipal);
     }
 
-
-    @DeleteMapping("/delete")
-    public ResponseEntity<GeneralResponseDto<String>> deleteUser (
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody DeleteUserRequest request) {
-        return userService.deleteUserByEmail(userPrincipal, request);
-    }
-
 }

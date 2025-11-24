@@ -1,6 +1,8 @@
 package com.example.CodePay.service;
 
 import com.example.CodePay.enums.UserStatus;
+import com.example.CodePay.exception.AuthenticatedUserNotFound;
+import com.example.CodePay.exception.PinException;
 import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.PinRequest;
 import com.example.CodePay.dto.PinResponse;
@@ -20,15 +22,15 @@ public class SetPinService {
 
     public PinResponse setPin(UserPrincipal userPrincipal, PinRequest pinRequest) {
         if (pinRequest == null || pinRequest.getPin() == null || pinRequest.getPin().isBlank()) {
-            throw new IllegalArgumentException("Pin cannot be empty");
+            throw new PinException("pin is cannot be empty");
         }
         String pin = pinRequest.getPin();
         if (!pin.matches("\\d{4,6}")) {
-            throw new IllegalArgumentException("PIN must be 4–6 digits");
+            throw new PinException();
         }
 
         User user = userRepository.findByEmail(userPrincipal.getEmail()).
-                orElseThrow(() -> new UsernameNotFoundException(userPrincipal.getEmail()));
+                orElseThrow(() -> new AuthenticatedUserNotFound());
 
         user.setPin(passwordEncoder.encode(pin));
         user.setUserStatus(UserStatus.ACTIVE);
