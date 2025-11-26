@@ -1,6 +1,7 @@
 package com.example.CodePay.repo;
 
 import com.example.CodePay.entity.User;
+import com.example.CodePay.enums.Roles;
 import com.example.CodePay.enums.UserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -29,4 +30,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
     List<User> findAllUserWithWallet();
 
     Long countByUserStatus(UserStatus userStatus);
+
+    Optional<User> findByRoles(Roles roles);
 }

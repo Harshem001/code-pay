@@ -1,6 +1,8 @@
 package com.example.CodePay.service;
 
+import com.example.CodePay.enums.Roles;
 import com.example.CodePay.enums.TransactionEntry;
+import com.example.CodePay.exception.*;
 import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.TransactionHistoryDTO;
 import com.example.CodePay.dto.Wallet_to_Wallet_Sender_Request;
@@ -18,9 +20,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.naming.InsufficientResourcesException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -32,30 +37,51 @@ public class Wallet_to_WalletService {
     private final TransactionRepository transactionRepository;
     private final PasswordEncoder passwordEncoder;
 
-
+@Transactional
     public Wallet_to_Wallet_Sender_Response walletTransfer(
             Authentication authentication,
             Wallet_to_Wallet_Sender_Request request) {
         UserPrincipal  userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
         User sender = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
-                () -> new UsernameNotFoundException("invalid email or password"));
+                () -> new AuthenticatedUserNotFound());
 
         BigDecimal amount = request.getAmount();
+        BigDecimal fee = calculateFees(amount);
+        BigDecimal totalAmount = fee.add(amount);
         BigDecimal balance = sender.getWallet().getBalance();
 
-        if (amount.compareTo(balance) > 0 ){
-            throw new RuntimeException("insufficient funds");
+        if (totalAmount.compareTo(balance) > 0 ){
+            throw new InsufficientFundException();
         }
+
+        User superAdmin = userRepository.findByRoles(Roles.SUPERADMIN).orElseThrow(
+                () -> new ForbiddenUserException("SuperAdmin not found")
+        );
+
         String receiverWalletNumber =  request.getReceiverWalletNumber();
+        String superAdminWalletNumber = superAdmin.getWallet().getWalletNumber();
 
         System.out.println("Receiver wallet number: " + receiverWalletNumber);
         System.out.println("Wallet exists: " + walletRepository.existsByWalletNumber(receiverWalletNumber));
 
+        // check if receiver wallet number is null or empty
 
         if (receiverWalletNumber == null || receiverWalletNumber.isEmpty() ||
                 !walletRepository.existsByWalletNumber(receiverWalletNumber)) {
-            throw new RuntimeException("Invalid receiver wallet number");
+            throw new WalletNumberException();
+        }
+
+        // check if the receiver wallet is the same with the sender wallet
+
+        if (receiverWalletNumber.equals(sender.getWallet().getWalletNumber())){
+            throw new WalletException("You cannot Send Money to yourself");
+        }
+
+        // check if the user is a super admin
+
+        if (sender.getRoles() == Roles.SUPERADMIN) {
+            throw new ForbiddenUserException("SuperAdmin are not allowed to make transfers");
         }
 
         //check if the pin is matching the one with the user in the db
@@ -63,8 +89,9 @@ public class Wallet_to_WalletService {
         boolean pinMatches = passwordEncoder.matches(request.getPin(), sender.getPin());
 
         if (!pinMatches) {
-            throw new IllegalArgumentException("invalid pin");
+            throw new PinException("invalid pin");
         }
+
 
         Transaction debitTransaction = new Transaction();
         debitTransaction.setWallet(sender.getWallet());
@@ -76,8 +103,9 @@ public class Wallet_to_WalletService {
         debitTransaction.setDate(Instant.now());
 
         Wallet receiverwWallet = walletRepository.findByWalletNumber(receiverWalletNumber).orElseThrow(
-                () -> new UsernameNotFoundException("invalid receiver wallet number")
-        );
+                () -> new WalletNumberException());
+        Wallet superAdminWallet = walletRepository.findByWalletNumber(superAdminWalletNumber).orElseThrow(
+                () -> new WalletNumberException());
 
         Transaction creditTransaction = new Transaction();
         creditTransaction.setWallet(receiverwWallet);
@@ -88,27 +116,61 @@ public class Wallet_to_WalletService {
         creditTransaction.setTransactionEntry(TransactionEntry.CREDITED);
         creditTransaction.setDate(Instant.now());
 
-        transactionRepository.save(debitTransaction);
-        transactionRepository.save(creditTransaction);
+        // creating fee transactions
+        Transaction feeDebitTransaction = new Transaction();
+        feeDebitTransaction.setWallet(debitTransaction.getWallet());
+        feeDebitTransaction.setReference(depositService.generateReference());
+        feeDebitTransaction.setAmount(fee);
+        feeDebitTransaction.setStatus(Status.SUCCESSFUL);
+        feeDebitTransaction.setTransactionType(TransactionType.FEE);
+        feeDebitTransaction.setTransactionEntry(TransactionEntry.DEBITED);
+        feeDebitTransaction.setDate(Instant.now());
 
-        // removing and adding money in the wallet
-        sender.getWallet().setBalance(sender.getWallet().getBalance().subtract(amount));
-        receiverwWallet.setBalance(receiverwWallet.getBalance().add(amount));
+        Transaction feeCreditTransaction = new Transaction();
+        feeCreditTransaction.setWallet(superAdminWallet);
+        feeCreditTransaction.setReference(feeDebitTransaction.getReference());
+        feeCreditTransaction.setAmount(fee);
+        feeCreditTransaction.setStatus(Status.SUCCESSFUL);
+        feeCreditTransaction.setTransactionType(TransactionType.FEE);
+        feeCreditTransaction.setTransactionEntry(TransactionEntry.CREDITED);
+        feeCreditTransaction.setDate(Instant.now());
 
-        walletRepository.save(sender.getWallet());
-        walletRepository.save(receiverwWallet);
+    // removing and adding money in the wallet
+    sender.getWallet().setBalance(sender.getWallet().getBalance().subtract(totalAmount));
+    receiverwWallet.setBalance(receiverwWallet.getBalance().add(amount));
+    superAdminWallet.setBalance(superAdminWallet.getBalance().add(fee));
+
+    //save wallet
+    walletRepository.save(sender.getWallet());
+    walletRepository.save(receiverwWallet);
+    walletRepository.save(superAdminWallet);
+
+    //save transaction
+    transactionRepository.save(debitTransaction);
+    transactionRepository.save(creditTransaction);
+    transactionRepository.save(feeDebitTransaction);
+    transactionRepository.save(feeCreditTransaction);
+
 
         Wallet_to_Wallet_Sender_Response response = new Wallet_to_Wallet_Sender_Response();
         response.setAmount(amount);
-        response.setMessage("You've Successfully transferred " + amount + " to " + receiverwWallet.getWalletNumber());
+        response.setMessage("You've Successfully transferred " + totalAmount + " to " + receiverwWallet.getWalletNumber());
         response.setReceiverName(receiverwWallet.getUser().getFullName());
         response.setReference(debitTransaction.getReference());
+        response.setDateTime(LocalDateTime.now());
 
         return  response;
     }
+
+    public BigDecimal calculateFees(BigDecimal amount){
+        BigDecimal feePercentage = new BigDecimal("0.015");
+        return amount.multiply(feePercentage);
+    }
+
+
     public List<TransactionHistoryDTO> getTransactionHistory(UserPrincipal userPrincipal) {
         User user = userRepository.findByEmail(userPrincipal.getEmail()).
-                orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                orElseThrow(() -> new AuthenticatedUserNotFound());
 
         List<Transaction> transactions = transactionRepository.findByWallet(user.getWallet());
 

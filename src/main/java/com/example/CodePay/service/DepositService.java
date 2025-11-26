@@ -1,6 +1,9 @@
 package com.example.CodePay.service;
 
 import com.example.CodePay.enums.TransactionEntry;
+import com.example.CodePay.exception.AuthenticatedUserNotFound;
+import com.example.CodePay.exception.ReferenceException;
+import com.example.CodePay.exception.WalletException;
 import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.DepositRequest;
 import com.example.CodePay.dto.DepositResponse;
@@ -49,7 +52,7 @@ public class DepositService {
     public DepositResponse payStackInitDeposit(UserPrincipal userPrincipal, DepositRequest depositRequest) {
 
         User user = userRepository.findByEmail(userPrincipal.getEmail()).
-                orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                orElseThrow(() -> new AuthenticatedUserNotFound());
        String reference;
        reference = generateReference();
 
@@ -113,13 +116,13 @@ public class DepositService {
 
         // to check the reference in my db that was created when initializing payment.
         Transaction transaction = transactionRepository.findByReference(reference).orElseThrow(
-                () -> new RuntimeException("No matching reference found in the DB"));
+                () -> new ReferenceException("No matching reference found"));
 
         if ("success".equalsIgnoreCase(status)) {
             transaction.setStatus(Status.SUCCESSFUL);
 
             Wallet wallet = walletRepository.findById(transaction.getWallet().getId()).orElseThrow(
-                    () -> new RuntimeException("No matching wallet found in the DB"));
+                    () -> new WalletException("No wallet found in the DB with the Transaction wallet"));
 
             transaction.setWallet(wallet);
 

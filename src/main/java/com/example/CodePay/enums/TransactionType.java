@@ -4,5 +4,6 @@ public enum TransactionType {
     WITHDRAWAL,
     TRANSFER,
     DEPOSIT,
-    CODE_TRANSFER
+    CODE_TRANSFER,
+    FEE
 }

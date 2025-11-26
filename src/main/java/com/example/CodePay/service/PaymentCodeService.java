@@ -1,5 +1,9 @@
 package com.example.CodePay.service;
 
+import com.example.CodePay.exception.AuthenticatedUserNotFound;
+import com.example.CodePay.exception.PinException;
+import com.example.CodePay.exception.WalletBalanceException;
+import com.example.CodePay.exception.WalletException;
 import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.dto.PaymentCodeRequest;
 import com.example.CodePay.dto.PaymentCodeResponse;
@@ -34,12 +38,12 @@ public class PaymentCodeService {
 
         //get the user from the dataBase
         User sender = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
-                () -> new UsernameNotFoundException("invalid email or password"));
+                () -> new AuthenticatedUserNotFound());
 
 
 
         if (sender.getWallet() == null) {
-            throw new RuntimeException("Sender does not have a wallet assigned");
+            throw new WalletException();
         }
 
         BigDecimal balance = sender.getWallet().getBalance();
@@ -48,10 +52,9 @@ public class PaymentCodeService {
             throw new RuntimeException("Wallet balance not initialized");
         }
 
-        System.out.println("Amount received: " + request.getAmount());
 
         if (balance.compareTo(request.getAmount()) < 0){
-            throw new RuntimeException("Insufficient funds");
+            throw new WalletBalanceException();
         }
 
         //check if the pin is matching the one with the user in the db
@@ -59,7 +62,7 @@ public class PaymentCodeService {
         boolean pinMatches = passwordEncoder.matches(request.getPin(), sender.getPin());
 
         if (!pinMatches) {
-            throw new IllegalArgumentException("invalid pin");
+            throw new PinException("Invalid Pin");
         }
 
         //generate unique payment code and set expiry date
