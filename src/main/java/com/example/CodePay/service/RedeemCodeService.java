@@ -1,5 +1,6 @@
 package com.example.CodePay.service;
 
+import com.example.CodePay.exception.*;
 import com.example.CodePay.security.UserPrincipal;
 import com.example.CodePay.enums.Status;
 import com.example.CodePay.enums.TransactionEntry;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,21 +37,24 @@ public class RedeemCodeService {
     private final DepositService depositService;
     private final TransactionRepository transactionRepository;
     private final GeoUtils geoUtils;
-
+@Transactional
     public RedeemCodeResponse redeemCode(Authentication authentication, RedeemCodeRequest request) {
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
         User redeemer = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
-                () -> new UsernameNotFoundException("invalid email or password")
+                () -> new AuthenticatedUserNotFound()
         );
 
-        //get redeemer wallet, where the money will enter
+        //get redeemer wallet
         Wallet redeemerwallet = walletRepository.getWalletById(redeemer.getId());
+        if (redeemerwallet == null) {
+            throw new WalletNumberException();
+        }
 
         //check if the code is in the DB
         PaymentCode paymentCode = paymentCodeRepository.findByCode(request.getCode()).orElseThrow(
-                () -> new RuntimeException("Payment Code with code " + request.getCode() + " not found"));
+                () -> new PaymentCodeException("Payment Code with code " + request.getCode() + " not found"));
 
         BigDecimal senderBalance =  paymentCode.getSender().getWallet().getBalance();
         BigDecimal amountSent = paymentCode.getAmount();
@@ -60,11 +65,28 @@ public class RedeemCodeService {
                 request.getRedeemerLat(), request.getRedeemerLon());
 
         if (distance > paymentCode.getRadius_meters()){
-            throw new RuntimeException("You're not within the allowed location to redeem this code");
+            throw new GeoValidationException("You're not within the allowed location to redeem this code");
         }
-        //check if the code has expired and if the sender's balanace is upto the amount.
-        if (paymentCode.getExpireAt().isAfter(Instant.now())
-                && senderBalance.compareTo(amountSent) > 0) {
+
+        //check if the sender is not the redeemer
+        if (paymentCode.getSender().getId().equals(redeemer.getId())) {
+            throw new WalletException("Senders cannot redeem their own code");
+        }
+
+    //check if the code has expired and if the sender's balance is upto the amount.
+    if (paymentCode.getExpireAt().isBefore(Instant.now())){
+        throw new PaymentCodeException("Payment Code with code " + request.getCode() + " has expired");
+    }
+    // check if the code hasn't been redeemed yet
+    if (paymentCode.getStatus().equals(PaymentCodeEnum.REDEEMED) ||
+                paymentCode.getStatus().equals(PaymentCodeEnum.EXPIRED)) {
+            throw new CodeHasExpiredOrRedeemed("Code has either been Redeemed or has expired");
+        }
+
+        //check if the sender wallet amount is greater than the amount
+        if (senderBalance.compareTo(amountSent) < 0){
+            throw new InsufficientFundException();
+        }
 
             //set debit transaction
             Transaction debitTransaction = new Transaction();
@@ -106,9 +128,6 @@ public class RedeemCodeService {
             paymentCode.setReceiverId(redeemer);
 
             paymentCodeRepository.save(paymentCode);
-        }else {
-                throw new RuntimeException("Payment Code with code " + request.getCode() + " has expired");
-            }
 
         return  RedeemCodeResponse.builder()
                 .amount(paymentCode.getAmount())
@@ -116,6 +135,5 @@ public class RedeemCodeService {
                 .createdAt(paymentCode.getCreatedAt())
                 .expireAt(paymentCode.getExpireAt())
                 .build();
-
     }
 }

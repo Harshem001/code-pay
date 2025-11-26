@@ -7,7 +7,10 @@ import com.example.CodePay.enums.Status;
 import com.example.CodePay.enums.TransactionEntry;
 import com.example.CodePay.enums.TransactionType;
 import com.example.CodePay.enums.UserStatus;
+import com.example.CodePay.exception.AuthenticatedUserNotFound;
 import com.example.CodePay.exception.EmailNotFoundException;
+import com.example.CodePay.exception.TransactionNotFoundException;
+import com.example.CodePay.exception.UserNotFoundException;
 import com.example.CodePay.repo.TransactionRepository;
 import com.example.CodePay.repo.UserRepository;
 import com.example.CodePay.repo.WalletRepository;
@@ -64,7 +67,7 @@ public class AdminService {
 
     public GeneralResponseDto<RegisterUserResponse> getUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new UsernameNotFoundException("User with id " + id + " not found"));
+                () -> new UserNotFoundException("User with id " + id + " not found"));
 
         RegisterUserResponse response = RegisterUserResponse.builder()
                 .id(user.getId())
@@ -86,7 +89,7 @@ public class AdminService {
 
     public ResponseEntity<GeneralResponseDto<String>> deleteUserByEmail(UserPrincipal userPrincipal, DeleteUserRequest request) {
         var user = userRepository.findByEmail(userPrincipal.getEmail()).orElseThrow(
-                () -> new UsernameNotFoundException("User not found"));
+                () -> new AuthenticatedUserNotFound());
 
         if (user.getEmail().equals(request.getEmail())) {
             throw new IllegalArgumentException("You cannot delete yourself");
@@ -108,7 +111,7 @@ public class AdminService {
 
     public GeneralResponseDto<TransactionDto> getTransactionById(Long id) {
         Transaction transaction = transactionRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Transaction with id " + id + " not found"));
+                () -> new TransactionNotFoundException("Transaction with id " + id + " not found"));
 
         TransactionDto transactionDto = TransactionDto.builder()
                 .senderName(transaction.getWallet().getUser().getFullName())
@@ -159,7 +162,7 @@ public class AdminService {
     }
     public GeneralResponseDto<AccountDetailsDto> getAccountDetails(Long Id) {
         User user = userRepository.findById(Id).orElseThrow(
-                ()-> new EntityNotFoundException("User not found"));
+                ()-> new UserNotFoundException("User not found"));
 
         List<Transaction> transactions = transactionRepository.findByWallet(user.getWallet());
 
@@ -192,7 +195,7 @@ public class AdminService {
     }
     public GeneralResponseDto<String> changeUserStatus(Long id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new UsernameNotFoundException("User with id " + id + " not found"));
+                () -> new UserNotFoundException("User with id " + id + " not found"));
         if (user.getUserStatus() == UserStatus.ACTIVE) {
             user.setUserStatus(UserStatus.INACTIVE);
         }else

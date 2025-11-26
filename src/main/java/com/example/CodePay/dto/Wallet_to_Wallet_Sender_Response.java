@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,4 +15,5 @@ public class Wallet_to_Wallet_Sender_Response {
     private String message; // successful or failed
     private String receiverName;
     private String reference;
+    private LocalDateTime dateTime;
 }
